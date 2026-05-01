@@ -5,7 +5,7 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "timesheet-setup",
-        "responseMode": "responseNode",
+        "responseMode": "lastNode",
         "options": {}
       },
       "id": "webhook_trigger",
@@ -26,7 +26,7 @@
     },
     {
       "parameters": {
-        "functionCode": "const fs = require('fs');\nconst path = require('path');\n\nconst outputPath = $input.first().json.outputPath;\n\ntry {\n  // Create directory if it doesn't exist\n  if (!fs.existsSync(outputPath)) {\n    fs.mkdirSync(outputPath, { recursive: true });\n  }\n  \n  return {\n    json: {\n      success: true,\n      folderCreated: true,\n      path: outputPath\n    }\n  };\n} catch (error) {\n  throw new Error(`Failed to create folder: ${error.message}`);\n}"
+        "functionCode": "const fs = require('fs');\nconst path = require('path');\n\nconst outputPath = $input.first().json.outputPath;\n\ntry {\n  // Create directory if it doesn't exist\n  if (!fs.existsSync(outputPath)) {\n    fs.mkdirSync(outputPath, { recursive: true });\n  }\n  \n  return {\n    json: {\n      success: true,\n      folderCreated: true,\n      path: outputPath,\n      timesheetDate: $input.first().json.timesheetDate,\n      formattedDate: $input.first().json.formattedDate,\n      folderName: $input.first().json.folderName,\n      outputPath: outputPath,\n      templatePath: $input.first().json.templatePath,\n      basePath: $input.first().json.basePath\n    }\n  };\n} catch (error) {\n  throw new Error(`Failed to create folder: ${error.message}`);\n}"
       },
       "id": "create_folder_node",
       "name": "Create Output Folder",
@@ -36,53 +36,43 @@
     },
     {
       "parameters": {
-        "functionCode": "const fs = require('fs');\nconst path = require('path');\n\nconst outputPath = $input.first().json.outputPath;\nconst templatePath = $input.first().json.templatePath;\nconst formattedDate = $input.first().json.formattedDate;\n\nconst wordTemplatePath = `${templatePath}/RossNanton-Invoice-yyyy.mm.dd.docx`;\nconst wordOutputPath = `${outputPath}/RossNanton-Invoice-${formattedDate}.docx`;\n\ntry {\n  fs.copyFileSync(wordTemplatePath, wordOutputPath);\n  return {\n    json: {\n      success: true,\n      fileCopied: 'Word',\n      sourcePath: wordTemplatePath,\n      outputPath: wordOutputPath\n    }\n  };\n} catch (error) {\n  throw new Error(`Failed to copy Word template: ${error.message}`);\n}"
+        "functionCode": "const fs = require('fs');\nconst path = require('path');\n\nconst outputPath = $input.first().json.outputPath;\nconst templatePath = $input.first().json.templatePath;\nconst formattedDate = $input.first().json.formattedDate;\n\nconst wordTemplatePath = `${templatePath}/RossNanton-Invoice-yyyy.mm.dd.docx`;\nconst wordOutputPath = `${outputPath}/RossNanton-Invoice-${formattedDate}.docx`;\n\ntry {\n  fs.copyFileSync(wordTemplatePath, wordOutputPath);\n  return {\n    json: {\n      success: true,\n      fileCopied: 'Word',\n      sourcePath: wordTemplatePath,\n      outputPath: wordOutputPath,\n      timesheetDate: $input.first().json.timesheetDate,\n      formattedDate: $input.first().json.formattedDate,\n      folderName: $input.first().json.folderName,\n      basePath: $input.first().json.basePath\n    }\n  };\n} catch (error) {\n  throw new Error(`Failed to copy Word template: ${error.message}`);\n}"
       },
       "id": "copy_word_template",
       "name": "Copy Word Template",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [1000, 200]
+      "position": [950, 150]
     },
     {
       "parameters": {
-        "functionCode": "const fs = require('fs');\nconst path = require('path');\n\nconst outputPath = $input.first().json.outputPath;\nconst templatePath = $input.first().json.templatePath;\nconst formattedDate = $input.first().json.formattedDate;\n\nconst excelTemplatePath = `${templatePath}/RossNanton-Timesheet-yyyy.mm.dd.xlsx`;\nconst excelOutputPath = `${outputPath}/RossNanton-Timesheet-${formattedDate}.xlsx`;\n\ntry {\n  fs.copyFileSync(excelTemplatePath, excelOutputPath);\n  return {\n    json: {\n      success: true,\n      fileCopied: 'Excel',\n      sourcePath: excelTemplatePath,\n      outputPath: excelOutputPath,\n      excelFilePath: excelOutputPath\n    }\n  };\n} catch (error) {\n  throw new Error(`Failed to copy Excel template: ${error.message}`);\n}"
+        "functionCode": "const fs = require('fs');\nconst path = require('path');\n\nconst outputPath = $input.first().json.outputPath;\nconst templatePath = $input.first().json.templatePath;\nconst formattedDate = $input.first().json.formattedDate;\n\nconst excelTemplatePath = `${templatePath}/RossNanton-Timesheet-yyyy.mm.dd.xlsx`;\nconst excelOutputPath = `${outputPath}/RossNanton-Timesheet-${formattedDate}.xlsx`;\n\ntry {\n  fs.copyFileSync(excelTemplatePath, excelOutputPath);\n  return {\n    json: {\n      success: true,\n      fileCopied: 'Excel',\n      sourcePath: excelTemplatePath,\n      outputPath: excelOutputPath,\n      excelFilePath: excelOutputPath,\n      timesheetDate: $input.first().json.timesheetDate,\n      formattedDate: $input.first().json.formattedDate,\n      folderName: $input.first().json.folderName,\n      basePath: $input.first().json.basePath\n    }\n  };\n} catch (error) {\n  throw new Error(`Failed to copy Excel template: ${error.message}`);\n}"
       },
       "id": "copy_excel_template",
       "name": "Copy Excel Template",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [1000, 400]
+      "position": [950, 450]
     },
     {
       "parameters": {
-        "functionCode": "const xlsx = require('xlsx');\nconst fs = require('fs');\n\nconst excelFilePath = $input.last().json.excelFilePath || $input.first().json.excelFilePath;\nconst timesheetDate = $input.first().json.timesheetDate;\n\nif (!excelFilePath) {\n  throw new Error('Excel file path not provided');\n}\n\nif (!timesheetDate) {\n  throw new Error('Timesheet date not provided');\n}\n\ntry {\n  // Read the Excel file\n  const workbook = xlsx.readFile(excelFilePath);\n  const worksheet = workbook.Sheets[workbook.SheetNames[0]];\n  \n  // Update cell E8 with the timesheet date\n  worksheet['E8'] = { v: timesheetDate, t: 's' };\n  \n  // Write the file back\n  xlsx.writeFile(workbook, excelFilePath);\n  \n  return {\n    json: {\n      success: true,\n      fileUpdated: 'Excel (Cell E8)',\n      filePath: excelFilePath,\n      cellE8Updated: timesheetDate\n    }\n  };\n} catch (error) {\n  throw new Error(`Failed to update Excel file: ${error.message}`);\n}"
+        "functionCode": "const xlsx = require('xlsx');\nconst fs = require('fs');\n\nconst excelFilePath = $input.first().json.excelFilePath || $input.first().json.outputPath + '/RossNanton-Timesheet-' + $input.first().json.formattedDate + '.xlsx';\nconst timesheetDate = $input.first().json.timesheetDate;\n\nif (!timesheetDate) {\n  throw new Error('Timesheet date not provided');\n}\n\ntry {\n  // Read the Excel file\n  const workbook = xlsx.readFile(excelFilePath);\n  const worksheet = workbook.Sheets[workbook.SheetNames[0]];\n  \n  // Update cell E8 with the timesheet date\n  worksheet['E8'] = { v: timesheetDate, t: 's' };\n  \n  // Write the file back\n  xlsx.writeFile(workbook, excelFilePath);\n  \n  return {\n    json: {\n      success: true,\n      fileUpdated: 'Excel (Cell E8)',\n      filePath: excelFilePath,\n      cellE8Updated: timesheetDate,\n      timesheetDate: timesheetDate,\n      formattedDate: $input.first().json.formattedDate,\n      folderName: $input.first().json.folderName,\n      outputPath: $input.first().json.outputPath || $input.first().json.basePath + '/' + $input.first().json.folderName\n    }\n  };\n} catch (error) {\n  throw new Error(`Failed to update Excel file: ${error.message}`);\n}"
       },
       "id": "update_excel_cell",
       "name": "Update Excel Cell E8",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [1250, 400]
+      "position": [1150, 300]
     },
     {
       "parameters": {
-        "functionCode": "// Compile final response\nconst updateResult = $input.first().json;\nconst allInputs = $input.all();\n\nlet timesheetDate = updateResult.cellE8Updated || updateResult.timesheetDate;\nlet folderName = updateResult.folderName;\nlet formattedDate = updateResult.formattedDate;\nlet outputPath = updateResult.outputPath;\n\n// Fallback to looking through all inputs for required values\nif (!timesheetDate || !folderName) {\n  for (let i = 0; i < allInputs.length; i++) {\n    if (allInputs[i].json.timesheetDate && !timesheetDate) {\n      timesheetDate = allInputs[i].json.timesheetDate;\n    }\n    if (allInputs[i].json.folderName && !folderName) {\n      folderName = allInputs[i].json.folderName;\n    }\n    if (allInputs[i].json.formattedDate && !formattedDate) {\n      formattedDate = allInputs[i].json.formattedDate;\n    }\n    if (allInputs[i].json.outputPath && !outputPath) {\n      outputPath = allInputs[i].json.outputPath;\n    }\n  }\n}\n\nreturn {\n  json: {\n    status: 'success',\n    message: 'Timesheet setup completed successfully',\n    details: {\n      timesheetDate: timesheetDate,\n      folderName: folderName,\n      outputPath: outputPath,\n      filesCreated: [\n        `RossNanton-Invoice-${formattedDate}.docx`,\n        `RossNanton-Timesheet-${formattedDate}.xlsx (Cell E8 updated: ${timesheetDate})`\n      ]\n    }\n  }\n};"
+        "functionCode": "// Compile final response\nconst result = $input.first().json;\n\nreturn {\n  json: {\n    status: 'success',\n    message: 'Timesheet setup completed successfully',\n    details: {\n      timesheetDate: result.timesheetDate,\n      folderName: result.folderName,\n      outputPath: result.outputPath,\n      filesCreated: [\n        `RossNanton-Invoice-${result.formattedDate}.docx`,\n        `RossNanton-Timesheet-${result.formattedDate}.xlsx (Cell E8 updated: ${result.timesheetDate})`\n      ]\n    }\n  }\n};"
       },
       "id": "build_response",
       "name": "Build Response",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [1400, 400]
-    },
-    {
-      "parameters": {
-        "options": {}
-      },
-      "id": "respond_to_webhook",
-      "name": "Respond to Webhook",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1,
-      "position": [1600, 400]
+      "position": [1350, 300]
     }
   ],
   "connections": {
@@ -155,22 +145,6 @@
             "index": 0
           }
         ]
-      ]
-    },
-    "build_response": {
-      "main": [
-        [
-          {
-            "node": "respond_to_webhook",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "respond_to_webhook": {
-      "main": [
-        []
       ]
     }
   }
