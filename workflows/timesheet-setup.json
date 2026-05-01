@@ -3,76 +3,84 @@
   "nodes": [
     {
       "parameters": {"httpMethod": "POST", "path": "timesheet-setup", "responseMode": "lastNode", "options": {}},
-      "id": "webhook_trigger",
+      "id": "87c7e218-7ec4-4fd8-b525-1d0ef736fadc",
       "name": "Webhook Trigger",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [250, 300]
+      "position": [250, 300],
+      "webhookId": "80e7b550-ce0e-4e00-ac01-be439bed7e67"
     },
     {
-      "parameters": {"functionCode": "const timesheetDate = $input.first().json.body?.timesheetDate;\nif (!timesheetDate) throw new Error('timesheetDate required (M/D/YYYY)');\nconst parts = timesheetDate.split('/');\nif (parts.length !== 3) throw new Error('Invalid format. Use M/D/YYYY');\nconst month = parseInt(parts[0]).toString().padStart(2, '0');\nconst day = parseInt(parts[1]).toString().padStart(2, '0');\nconst year = parts[2];\nconst formattedDate = year + '.' + month + '.' + day;\nconst outputPath = '/app/n8n/timesheet/output/' + formattedDate;\nconst templatePath = '/app/n8n/timesheet/n8n-workflows/templates';\nreturn {json: {timesheetDate: timesheetDate, formattedDate: formattedDate, folderName: formattedDate, outputPath: outputPath, templatePath: templatePath}};" },
-      "id": "format_date_node",
+      "parameters": {"functionCode": "const timesheetDate = $input.first().json.body?.timesheetDate;\nif (!timesheetDate) throw new Error('timesheetDate required (M/D/YYYY)');\nconst parts = timesheetDate.split('/');\nif (parts.length !== 3) throw new Error('Invalid format. Use M/D/YYYY');\nconst month = parseInt(parts[0]).toString().padStart(2, '0');\nconst day = parseInt(parts[1]).toString().padStart(2, '0');\nconst year = parts[2];\nconst formattedDate = year + '.' + month + '.' + day;\nconst outputPath = '/app/n8n/timesheet/output/' + formattedDate;\nconst templatePath = '/app/n8n/timesheet/n8n-workflows/templates';\nreturn {json: {timesheetDate: timesheetDate, formattedDate: formattedDate, folderName: formattedDate, outputPath: outputPath, templatePath: templatePath}};"},
+      "id": "67f66208-d476-49cd-824a-ed94bd377d6b",
       "name": "Format Date",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
       "position": [500, 300]
     },
     {
-      "parameters": {"functionCode": "const { execSync } = require('child_process');\nconst outputPath = $input.first().json.outputPath;\ntry {\n  execSync('rm -rf \"' + outputPath + '\"');\n  const data = $input.first().json;\n  return {json: {success: true, folderDeleted: true, timesheetDate: data.timesheetDate, formattedDate: data.formattedDate, folderName: data.folderName, outputPath: outputPath, templatePath: data.templatePath}};\n} catch (error) {\n  throw new Error('Failed to delete folder: ' + error.message);\n}" },
-      "id": "delete_existing_folder",
+      "parameters": {"functionCode": "const { execSync } = require('child_process');\nconst outputPath = $input.first().json.outputPath;\ntry {\n  execSync('rm -rf \"' + outputPath + '\"');\n  const data = $input.first().json;\n  return {json: {success: true, folderDeleted: true, timesheetDate: data.timesheetDate, formattedDate: data.formattedDate, folderName: data.folderName, outputPath: outputPath, templatePath: data.templatePath}};\n} catch (error) {\n  throw new Error('Failed to delete folder: ' + error.message);\n}"},
+      "id": "3df9a9ef-7e73-4db4-8fed-c489ca99ea77",
       "name": "Delete Existing Folder",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [650, 300]
+      "position": [750, 300]
     },
     {
-      "parameters": {"functionCode": "const { execSync } = require('child_process');\nconst outputPath = $input.first().json.outputPath;\ntry {\n  execSync('mkdir -p \"' + outputPath + '\"');\n  const data = $input.first().json;\n  return {json: {success: true, folderCreated: true, timesheetDate: data.timesheetDate, formattedDate: data.formattedDate, folderName: data.folderName, outputPath: outputPath, templatePath: data.templatePath}};\n} catch (error) {\n  throw new Error('Failed to create folder: ' + error.message);\n}" },
-      "id": "create_folder_node",
+      "parameters": {"functionCode": "const { execSync } = require('child_process');\nconst outputPath = $input.first().json.outputPath;\ntry {\n  execSync('mkdir -p \"' + outputPath + '\"');\n  const data = $input.first().json;\n  return {json: {success: true, folderCreated: true, timesheetDate: data.timesheetDate, formattedDate: data.formattedDate, folderName: data.folderName, outputPath: outputPath, templatePath: data.templatePath}};\n} catch (error) {\n  throw new Error('Failed to create folder: ' + error.message);\n}"},
+      "id": "5bf257e6-0195-4473-b0ef-a363fbf55e23",
       "name": "Create Output Folder",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [800, 300]
+      "position": [950, 300]
     },
     {
-      "parameters": {"functionCode": "const { execSync } = require('child_process');\nconst data = $input.first().json;\nconst wordTemplatePath = data.templatePath + '/RossNanton-Invoice-yyyy.mm.dd.docx';\nconst wordOutputPath = data.outputPath + '/RossNanton-Invoice-' + data.formattedDate + '.docx';\ntry {\n  execSync('cp \"' + wordTemplatePath + '\" \"' + wordOutputPath + '\"');\n  return {json: {success: true, fileCopied: 'Word', outputPath: wordOutputPath, timesheetDate: data.timesheetDate, formattedDate: data.formattedDate, excelOutputPath: data.outputPath + '/RossNanton-Timesheet-' + data.formattedDate + '.xlsx'}};\n} catch (error) {\n  throw new Error('Failed to copy Word: ' + error.message);\n}" },
-      "id": "copy_word_template",
+      "parameters": {"functionCode": "const { execSync } = require('child_process');\nconst data = $input.first().json;\nconst wordTemplatePath = data.templatePath + '/RossNanton-Invoice-yyyy.mm.dd.docx';\nconst wordOutputPath = data.outputPath + '/RossNanton-Invoice-' + data.formattedDate + '.docx';\ntry {\n  execSync('cp \"' + wordTemplatePath + '\" \"' + wordOutputPath + '\"');\n  return {json: {success: true, fileCopied: 'Word', outputPath: wordOutputPath, timesheetDate: data.timesheetDate, formattedDate: data.formattedDate, excelOutputPath: data.outputPath + '/RossNanton-Timesheet-' + data.formattedDate + '.xlsx'}};\n} catch (error) {\n  throw new Error('Failed to copy Word: ' + error.message);\n}"},
+      "id": "91e761f7-3be1-4d1a-823e-4c759544fb34",
       "name": "Copy Word Template",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [950, 150]
+      "position": [1100, 150]
     },
     {
-      "parameters": {"functionCode": "const { execSync } = require('child_process');\nconst data = $input.first().json;\nconst excelTemplatePath = data.templatePath + '/RossNanton-Timesheet-yyyy.mm.dd.xlsx';\nconst excelOutputPath = data.outputPath + '/RossNanton-Timesheet-' + data.formattedDate + '.xlsx';\ntry {\n  execSync('cp \"' + excelTemplatePath + '\" \"' + excelOutputPath + '\"');\n  return {json: {success: true, fileCopied: 'Excel', excelFilePath: excelOutputPath, timesheetDate: data.timesheetDate, formattedDate: data.formattedDate, outputPath: data.outputPath}};\n} catch (error) {\n  throw new Error('Failed to copy Excel: ' + error.message);\n}" },
-      "id": "copy_excel_template",
+      "parameters": {"functionCode": "const { execSync } = require('child_process');\nconst data = $input.first().json;\nconst excelTemplatePath = data.templatePath + '/RossNanton-Timesheet-yyyy.mm.dd.xlsx';\nconst excelOutputPath = data.outputPath + '/RossNanton-Timesheet-' + data.formattedDate + '.xlsx';\ntry {\n  execSync('cp \"' + excelTemplatePath + '\" \"' + excelOutputPath + '\"');\n  return {json: {success: true, fileCopied: 'Excel', excelFilePath: excelOutputPath, timesheetDate: data.timesheetDate, formattedDate: data.formattedDate, outputPath: data.outputPath}};\n} catch (error) {\n  throw new Error('Failed to copy Excel: ' + error.message);\n}"},
+      "id": "6bb6b887-3fa5-4d7c-aa52-bca8a7549e6e",
       "name": "Copy Excel Template",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [950, 450]
+      "position": [1100, 450]
     },
     {
-      "parameters": {"functionCode": "const { execSync } = require('child_process');\nconst data = $input.first().json;\nconst excelFilePath = data.excelFilePath;\nconst timesheetDate = data.timesheetDate;\nif (!excelFilePath) throw new Error('Excel file path not provided');\nif (!timesheetDate) throw new Error('Timesheet date not provided');\ntry {\n  const result = execSync('node /app/n8n/timesheet/n8n-workflows/scripts/update-excel.js \"' + excelFilePath + '\" E8 \"' + timesheetDate + '\"', {encoding: 'utf8'});\n  const parsed = JSON.parse(result);\n  if (!parsed.success) throw new Error(parsed.error);\n  return {json: {success: true, fileUpdated: 'Excel', timesheetDate: timesheetDate, formattedDate: data.formattedDate, outputPath: data.outputPath}};\n} catch (error) {\n  throw new Error('Failed to update Excel: ' + error.message);\n}" },
-      "id": "update_excel_cell",
+      "parameters": {"functionCode": "const { execSync } = require('child_process');\nconst data = $input.first().json;\nconst excelFilePath = data.excelFilePath;\nconst timesheetDate = data.timesheetDate;\nif (!excelFilePath) throw new Error('Excel file path not provided');\nif (!timesheetDate) throw new Error('Timesheet date not provided');\ntry {\n  const result = execSync('node /app/n8n/timesheet/n8n-workflows/scripts/update-excel.js \"' + excelFilePath + '\" E8 \"' + timesheetDate + '\"', {encoding: 'utf8'});\n  const parsed = JSON.parse(result);\n  if (!parsed.success) throw new Error(parsed.error);\n  return {json: {success: true, fileUpdated: 'Excel', timesheetDate: timesheetDate, formattedDate: data.formattedDate, outputPath: data.outputPath}};\n} catch (error) {\n  throw new Error('Failed to update Excel: ' + error.message);\n}"},
+      "id": "cbfd384d-37f7-43dc-81df-81916e177713",
       "name": "Update Excel Cell E8",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [1100, 300]
+      "position": [1250, 300]
     },
     {
-      "parameters": {"functionCode": "const data = $input.first().json;\nreturn {json: {status: 'success', message: 'Timesheet setup completed', details: {timesheetDate: data.timesheetDate, folderName: data.formattedDate, outputPath: data.outputPath, filesCreated: ['RossNanton-Invoice-' + data.formattedDate + '.docx', 'RossNanton-Timesheet-' + data.formattedDate + '.xlsx']}}};" },
-      "id": "build_response",
+      "parameters": {"functionCode": "const data = $input.first().json;\nreturn {json: {status: 'success', message: 'Timesheet setup completed', details: {timesheetDate: data.timesheetDate, folderName: data.formattedDate, outputPath: data.outputPath, filesCreated: ['RossNanton-Invoice-' + data.formattedDate + '.docx', 'RossNanton-Timesheet-' + data.formattedDate + '.xlsx']}}};"},
+      "id": "fea61c08-199c-4266-adf7-d86c5cf2e68c",
       "name": "Build Response",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [1250, 300]
+      "position": [1400, 300]
     }
   ],
+  "pinData": {},
   "connections": {
-    "webhook_trigger": {"main": [[{"node": "format_date_node", "type": "main", "index": 0}]]},
-    "format_date_node": {"main": [[{"node": "delete_existing_folder", "type": "main", "index": 0}]]},
-    "delete_existing_folder": {"main": [[{"node": "create_folder_node", "type": "main", "index": 0}]]},
-    "create_folder_node": {"main": [[{"node": "copy_word_template", "type": "main", "index": 0}, {"node": "copy_excel_template", "type": "main", "index": 0}]]},
-    "copy_word_template": {"main": [[{"node": "update_excel_cell", "type": "main", "index": 0}]]},
-    "copy_excel_template": {"main": [[{"node": "update_excel_cell", "type": "main", "index": 0}]]},
-    "update_excel_cell": {"main": [[{"node": "build_response", "type": "main", "index": 0}]]}
-  }
+    "Webhook Trigger": {"main": [[{"node": "Format Date", "type": "main", "index": 0}]]},
+    "Format Date": {"main": [[{"node": "Delete Existing Folder", "type": "main", "index": 0}]]},
+    "Delete Existing Folder": {"main": [[{"node": "Create Output Folder", "type": "main", "index": 0}]]},
+    "Create Output Folder": {"main": [[{"node": "Copy Word Template", "type": "main", "index": 0}, {"node": "Copy Excel Template", "type": "main", "index": 0}]]},
+    "Copy Word Template": {"main": [[{"node": "Update Excel Cell E8", "type": "main", "index": 0}]]},
+    "Copy Excel Template": {"main": [[{"node": "Update Excel Cell E8", "type": "main", "index": 0}]]},
+    "Update Excel Cell E8": {"main": [[{"node": "Build Response", "type": "main", "index": 0}]]}
+  },
+  "active": false,
+  "settings": {"executionOrder": "v1", "binaryMode": "separate"},
+  "versionId": "87ffa42d-33d1-4270-a36f-901e587f695d",
+  "meta": {"templateCredsSetupCompleted": true, "instanceId": "10906f37b658a094c10aa71a2fd76a84650d0d64186b9c36c58832a1361b4513"},
+  "id": "aYFWOn7UstdsGedN",
+  "tags": []
 }
