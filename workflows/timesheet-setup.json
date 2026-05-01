@@ -73,7 +73,7 @@
     "Format Date": {"main": [[{"node": "Delete Existing Folder", "type": "main", "index": 0}]]},
     "Delete Existing Folder": {"main": [[{"node": "Create Output Folder", "type": "main", "index": 0}]]},
     "Create Output Folder": {"main": [[{"node": "Copy Word Template", "type": "main", "index": 0}, {"node": "Copy Excel Template", "type": "main", "index": 0}]]},
-    "Copy Word Template": {"main": [[{"node": "Update Excel Cell E8", "type": "main", "index": 0}]]},
+    "Copy Word Template": {"main": [[]]},
     "Copy Excel Template": {"main": [[{"node": "Update Excel Cell E8", "type": "main", "index": 0}]]},
     "Update Excel Cell E8": {"main": [[{"node": "Build Response", "type": "main", "index": 0}]]}
   },
