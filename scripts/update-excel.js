@@ -26,14 +26,25 @@ try {
   }
 
   // Read the workbook
-  const workbook = xlsx.readFile(filePath);
+  const workbook = xlsx.readFile(filePath, { cellStyles: true, cellFormula: true });
   const worksheet = workbook.Sheets[workbook.SheetNames[0]];
 
-  // Update the cell
-  worksheet[cellAddress] = { v: cellValue, t: 's' };
+  // Get existing cell to preserve type info
+  const existingCell = worksheet[cellAddress];
+  
+  // Update the cell - preserve general formatting
+  worksheet[cellAddress] = { 
+    v: cellValue, 
+    t: 's',
+    w: cellValue
+  };
 
-  // Write back to file
-  xlsx.writeFile(workbook, filePath);
+  // Write back to file with minimal changes to preserve integrity
+  xlsx.writeFile(workbook, filePath, { 
+    bookSST: false,
+    cellStyles: true,
+    cellDates: true
+  });
 
   console.log(JSON.stringify({
     success: true,
