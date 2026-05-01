@@ -26,37 +26,37 @@
     },
     {
       "parameters": {
-        "command": "mkdir -p {{ $json.outputPath }}"
+        "functionCode": "const { execSync } = require('child_process');\n\nconst outputPath = $input.first().json.outputPath;\n\ntry {\n  // Create directory if it doesn't exist\n  execSync(`mkdir -p \"${outputPath}\"`);\n  \n  return {\n    json: {\n      success: true,\n      folderCreated: true,\n      path: outputPath,\n      timesheetDate: $input.first().json.timesheetDate,\n      formattedDate: $input.first().json.formattedDate,\n      folderName: $input.first().json.folderName,\n      outputPath: outputPath,\n      templatePath: $input.first().json.templatePath,\n      basePath: $input.first().json.basePath\n    }\n  };\n} catch (error) {\n  throw new Error(`Failed to create folder: ${error.message}`);\n}"
       },
-      "id": "bash_create_folder",
+      "id": "create_folder_node",
       "name": "Create Output Folder",
-      "type": "n8n-nodes-base.bash",
+      "type": "n8n-nodes-base.function",
       "typeVersion": 1,
       "position": [750, 300]
     },
     {
       "parameters": {
-        "command": "cp {{ $json.templatePath }}/RossNanton-Invoice-yyyy.mm.dd.docx {{ $json.outputPath }}/RossNanton-Invoice-{{ $json.formattedDate }}.docx"
+        "functionCode": "const { execSync } = require('child_process');\n\nconst outputPath = $input.first().json.outputPath;\nconst templatePath = $input.first().json.templatePath;\nconst formattedDate = $input.first().json.formattedDate;\n\nconst wordTemplatePath = `${templatePath}/RossNanton-Invoice-yyyy.mm.dd.docx`;\nconst wordOutputPath = `${outputPath}/RossNanton-Invoice-${formattedDate}.docx`;\n\ntry {\n  execSync(`cp \"${wordTemplatePath}\" \"${wordOutputPath}\"`);\n  return {\n    json: {\n      success: true,\n      fileCopied: 'Word',\n      sourcePath: wordTemplatePath,\n      outputPath: wordOutputPath,\n      timesheetDate: $input.first().json.timesheetDate,\n      formattedDate: $input.first().json.formattedDate,\n      folderName: $input.first().json.folderName,\n      basePath: $input.first().json.basePath\n    }\n  };\n} catch (error) {\n  throw new Error(`Failed to copy Word template: ${error.message}`);\n}"
       },
-      "id": "bash_copy_word",
+      "id": "copy_word_template",
       "name": "Copy Word Template",
-      "type": "n8n-nodes-base.bash",
+      "type": "n8n-nodes-base.function",
       "typeVersion": 1,
       "position": [950, 150]
     },
     {
       "parameters": {
-        "command": "cp {{ $json.templatePath }}/RossNanton-Timesheet-yyyy.mm.dd.xlsx {{ $json.outputPath }}/RossNanton-Timesheet-{{ $json.formattedDate }}.xlsx"
+        "functionCode": "const { execSync } = require('child_process');\n\nconst outputPath = $input.first().json.outputPath;\nconst templatePath = $input.first().json.templatePath;\nconst formattedDate = $input.first().json.formattedDate;\n\nconst excelTemplatePath = `${templatePath}/RossNanton-Timesheet-yyyy.mm.dd.xlsx`;\nconst excelOutputPath = `${outputPath}/RossNanton-Timesheet-${formattedDate}.xlsx`;\n\ntry {\n  execSync(`cp \"${excelTemplatePath}\" \"${excelOutputPath}\"`);\n  return {\n    json: {\n      success: true,\n      fileCopied: 'Excel',\n      sourcePath: excelTemplatePath,\n      outputPath: excelOutputPath,\n      excelFilePath: excelOutputPath,\n      timesheetDate: $input.first().json.timesheetDate,\n      formattedDate: $input.first().json.formattedDate,\n      folderName: $input.first().json.folderName,\n      basePath: $input.first().json.basePath\n    }\n  };\n} catch (error) {\n  throw new Error(`Failed to copy Excel template: ${error.message}`);\n}"
       },
-      "id": "bash_copy_excel",
+      "id": "copy_excel_template",
       "name": "Copy Excel Template",
-      "type": "n8n-nodes-base.bash",
+      "type": "n8n-nodes-base.function",
       "typeVersion": 1,
       "position": [950, 450]
     },
     {
       "parameters": {
-        "functionCode": "const xlsx = require('xlsx');\nconst path = require('path');\n\nconst outputPath = $input.first().json.outputPath;\nconst formattedDate = $input.first().json.formattedDate;\nconst timesheetDate = $input.first().json.timesheetDate;\n\nconst excelFilePath = `${outputPath}/RossNanton-Timesheet-${formattedDate}.xlsx`;\n\nif (!timesheetDate) {\n  throw new Error('Timesheet date not provided');\n}\n\ntry {\n  // Read the Excel file\n  const workbook = xlsx.readFile(excelFilePath);\n  const worksheet = workbook.Sheets[workbook.SheetNames[0]];\n  \n  // Update cell E8 with the timesheet date\n  worksheet['E8'] = { v: timesheetDate, t: 's' };\n  \n  // Write the file back\n  xlsx.writeFile(workbook, excelFilePath);\n  \n  return {\n    json: {\n      success: true,\n      fileUpdated: 'Excel (Cell E8)',\n      filePath: excelFilePath,\n      cellE8Updated: timesheetDate,\n      timesheetDate: timesheetDate,\n      formattedDate: formattedDate,\n      folderName: $input.first().json.folderName,\n      outputPath: outputPath\n    }\n  };\n} catch (error) {\n  throw new Error(`Failed to update Excel file: ${error.message}`);\n}"
+        "functionCode": "const xlsx = require('xlsx');\n\nconst outputPath = $input.first().json.outputPath;\nconst formattedDate = $input.first().json.formattedDate;\nconst timesheetDate = $input.first().json.timesheetDate;\n\nconst excelFilePath = `${outputPath}/RossNanton-Timesheet-${formattedDate}.xlsx`;\n\nif (!timesheetDate) {\n  throw new Error('Timesheet date not provided');\n}\n\ntry {\n  // Read the Excel file\n  const workbook = xlsx.readFile(excelFilePath);\n  const worksheet = workbook.Sheets[workbook.SheetNames[0]];\n  \n  // Update cell E8 with the timesheet date\n  worksheet['E8'] = { v: timesheetDate, t: 's' };\n  \n  // Write the file back\n  xlsx.writeFile(workbook, excelFilePath);\n  \n  return {\n    json: {\n      success: true,\n      fileUpdated: 'Excel (Cell E8)',\n      filePath: excelFilePath,\n      cellE8Updated: timesheetDate,\n      timesheetDate: timesheetDate,\n      formattedDate: formattedDate,\n      folderName: $input.first().json.folderName,\n      outputPath: outputPath\n    }\n  };\n} catch (error) {\n  throw new Error(`Failed to update Excel file: ${error.message}`);\n}"
       },
       "id": "update_excel_cell",
       "name": "Update Excel Cell E8",
@@ -91,30 +91,30 @@
       "main": [
         [
           {
-            "node": "bash_create_folder",
+            "node": "create_folder_node",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "bash_create_folder": {
+    "create_folder_node": {
       "main": [
         [
           {
-            "node": "bash_copy_word",
+            "node": "copy_word_template",
             "type": "main",
             "index": 0
           },
           {
-            "node": "bash_copy_excel",
+            "node": "copy_excel_template",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "bash_copy_word": {
+    "copy_word_template": {
       "main": [
         [
           {
@@ -125,7 +125,7 @@
         ]
       ]
     },
-    "bash_copy_excel": {
+    "copy_excel_template": {
       "main": [
         [
           {
