@@ -16,7 +16,7 @@
     },
     {
       "parameters": {
-        "functionCode": "// Parse incoming timesheet date and format it\nconst timesheetDate = $input.first().json.timesheetDate;\n\nif (!timesheetDate) {\n  throw new Error('timesheetDate is required (format: M/D/YYYY or MM/DD/YYYY)');\n}\n\n// Parse date\nconst parts = timesheetDate.split('/');\nif (parts.length !== 3) {\n  throw new Error('Invalid date format. Use M/D/YYYY');\n}\n\nconst month = parseInt(parts[0]).toString().padStart(2, '0');\nconst day = parseInt(parts[1]).toString().padStart(2, '0');\nconst year = parts[2];\n\nconst formattedDate = `${year}.${month}.${day}`;\nconst folderName = formattedDate;\nconst basePath = '/home/node/.openclaw/workspace/projects/n8n/timesheet/output';\nconst outputPath = `${basePath}/${folderName}`;\nconst templatePath = '/home/node/.openclaw/workspace/projects/n8n/timesheet/n8n-workflows/templates';\n\nreturn {\n  json: {\n    timesheetDate,\n    formattedDate,\n    folderName,\n    outputPath,\n    templatePath,\n    basePath\n  }\n};"
+        "functionCode": "// Parse incoming timesheet date and format it\nconst timesheetDate = $input.first().json.body?.timesheetDate;\n\nif (!timesheetDate) {\n  throw new Error('timesheetDate is required (format: M/D/YYYY or MM/DD/YYYY)');\n}\n\n// Parse date\nconst parts = timesheetDate.split('/');\nif (parts.length !== 3) {\n  throw new Error('Invalid date format. Use M/D/YYYY');\n}\n\nconst month = parseInt(parts[0]).toString().padStart(2, '0');\nconst day = parseInt(parts[1]).toString().padStart(2, '0');\nconst year = parts[2];\n\nconst formattedDate = `${year}.${month}.${day}`;\nconst folderName = formattedDate;\nconst basePath = '/app/n8n/timesheet/output';\nconst outputPath = `${basePath}/${folderName}`;\nconst templatePath = '/app/n8n/timesheet/n8n-workflows/templates';\n\nreturn {\n  json: {\n    timesheetDate,\n    formattedDate,\n    folderName,\n    outputPath,\n    templatePath,\n    basePath\n  }\n};"
       },
       "id": "format_date_node",
       "name": "Format Date",
@@ -26,43 +26,59 @@
     },
     {
       "parameters": {
-        "functionCode": "const fs = require('fs');\nconst path = require('path');\n\nconst outputPath = $input.first().json.outputPath;\n\ntry {\n  // Create directory if it doesn't exist\n  if (!fs.existsSync(outputPath)) {\n    fs.mkdirSync(outputPath, { recursive: true });\n  }\n  \n  return {\n    json: {\n      success: true,\n      folderCreated: true,\n      path: outputPath,\n      timesheetDate: $input.first().json.timesheetDate,\n      formattedDate: $input.first().json.formattedDate,\n      folderName: $input.first().json.folderName,\n      outputPath: outputPath,\n      templatePath: $input.first().json.templatePath,\n      basePath: $input.first().json.basePath\n    }\n  };\n} catch (error) {\n  throw new Error(`Failed to create folder: ${error.message}`);\n}"
+        "operation": "exists",
+        "path": "{{ $json.outputPath }}"
       },
-      "id": "create_folder_node",
-      "name": "Create Output Folder",
-      "type": "n8n-nodes-base.function",
+      "id": "fs_check_folder",
+      "name": "Check if Folder Exists",
+      "type": "n8n-nodes-base.fileSystem",
       "typeVersion": 1,
       "position": [750, 300]
     },
     {
       "parameters": {
-        "functionCode": "const fs = require('fs');\nconst path = require('path');\n\nconst outputPath = $input.first().json.outputPath;\nconst templatePath = $input.first().json.templatePath;\nconst formattedDate = $input.first().json.formattedDate;\n\nconst wordTemplatePath = `${templatePath}/RossNanton-Invoice-yyyy.mm.dd.docx`;\nconst wordOutputPath = `${outputPath}/RossNanton-Invoice-${formattedDate}.docx`;\n\ntry {\n  fs.copyFileSync(wordTemplatePath, wordOutputPath);\n  return {\n    json: {\n      success: true,\n      fileCopied: 'Word',\n      sourcePath: wordTemplatePath,\n      outputPath: wordOutputPath,\n      timesheetDate: $input.first().json.timesheetDate,\n      formattedDate: $input.first().json.formattedDate,\n      folderName: $input.first().json.folderName,\n      basePath: $input.first().json.basePath\n    }\n  };\n} catch (error) {\n  throw new Error(`Failed to copy Word template: ${error.message}`);\n}"
+        "operation": "mkdir",
+        "path": "{{ $json.outputPath }}"
       },
-      "id": "copy_word_template",
+      "id": "fs_create_folder",
+      "name": "Create Output Folder",
+      "type": "n8n-nodes-base.fileSystem",
+      "typeVersion": 1,
+      "position": [950, 300]
+    },
+    {
+      "parameters": {
+        "operation": "copy",
+        "sourcePath": "{{ $json.templatePath }}/RossNanton-Invoice-yyyy.mm.dd.docx",
+        "destinationPath": "{{ $json.outputPath }}/RossNanton-Invoice-{{ $json.formattedDate }}.docx"
+      },
+      "id": "fs_copy_word",
       "name": "Copy Word Template",
-      "type": "n8n-nodes-base.function",
+      "type": "n8n-nodes-base.fileSystem",
       "typeVersion": 1,
-      "position": [950, 150]
+      "position": [1100, 150]
     },
     {
       "parameters": {
-        "functionCode": "const fs = require('fs');\nconst path = require('path');\n\nconst outputPath = $input.first().json.outputPath;\nconst templatePath = $input.first().json.templatePath;\nconst formattedDate = $input.first().json.formattedDate;\n\nconst excelTemplatePath = `${templatePath}/RossNanton-Timesheet-yyyy.mm.dd.xlsx`;\nconst excelOutputPath = `${outputPath}/RossNanton-Timesheet-${formattedDate}.xlsx`;\n\ntry {\n  fs.copyFileSync(excelTemplatePath, excelOutputPath);\n  return {\n    json: {\n      success: true,\n      fileCopied: 'Excel',\n      sourcePath: excelTemplatePath,\n      outputPath: excelOutputPath,\n      excelFilePath: excelOutputPath,\n      timesheetDate: $input.first().json.timesheetDate,\n      formattedDate: $input.first().json.formattedDate,\n      folderName: $input.first().json.folderName,\n      basePath: $input.first().json.basePath\n    }\n  };\n} catch (error) {\n  throw new Error(`Failed to copy Excel template: ${error.message}`);\n}"
+        "operation": "copy",
+        "sourcePath": "{{ $json.templatePath }}/RossNanton-Timesheet-yyyy.mm.dd.xlsx",
+        "destinationPath": "{{ $json.outputPath }}/RossNanton-Timesheet-{{ $json.formattedDate }}.xlsx"
       },
-      "id": "copy_excel_template",
+      "id": "fs_copy_excel",
       "name": "Copy Excel Template",
-      "type": "n8n-nodes-base.function",
+      "type": "n8n-nodes-base.fileSystem",
       "typeVersion": 1,
-      "position": [950, 450]
+      "position": [1100, 450]
     },
     {
       "parameters": {
-        "functionCode": "const xlsx = require('xlsx');\nconst fs = require('fs');\n\nconst excelFilePath = $input.first().json.excelFilePath || $input.first().json.outputPath + '/RossNanton-Timesheet-' + $input.first().json.formattedDate + '.xlsx';\nconst timesheetDate = $input.first().json.timesheetDate;\n\nif (!timesheetDate) {\n  throw new Error('Timesheet date not provided');\n}\n\ntry {\n  // Read the Excel file\n  const workbook = xlsx.readFile(excelFilePath);\n  const worksheet = workbook.Sheets[workbook.SheetNames[0]];\n  \n  // Update cell E8 with the timesheet date\n  worksheet['E8'] = { v: timesheetDate, t: 's' };\n  \n  // Write the file back\n  xlsx.writeFile(workbook, excelFilePath);\n  \n  return {\n    json: {\n      success: true,\n      fileUpdated: 'Excel (Cell E8)',\n      filePath: excelFilePath,\n      cellE8Updated: timesheetDate,\n      timesheetDate: timesheetDate,\n      formattedDate: $input.first().json.formattedDate,\n      folderName: $input.first().json.folderName,\n      outputPath: $input.first().json.outputPath || $input.first().json.basePath + '/' + $input.first().json.folderName\n    }\n  };\n} catch (error) {\n  throw new Error(`Failed to update Excel file: ${error.message}`);\n}"
+        "functionCode": "const xlsx = require('xlsx');\nconst path = require('path');\n\nconst outputPath = $input.first().json.outputPath;\nconst formattedDate = $input.first().json.formattedDate;\nconst timesheetDate = $input.first().json.timesheetDate;\n\nconst excelFilePath = `${outputPath}/RossNanton-Timesheet-${formattedDate}.xlsx`;\n\nif (!timesheetDate) {\n  throw new Error('Timesheet date not provided');\n}\n\ntry {\n  // Read the Excel file\n  const workbook = xlsx.readFile(excelFilePath);\n  const worksheet = workbook.Sheets[workbook.SheetNames[0]];\n  \n  // Update cell E8 with the timesheet date\n  worksheet['E8'] = { v: timesheetDate, t: 's' };\n  \n  // Write the file back\n  xlsx.writeFile(workbook, excelFilePath);\n  \n  return {\n    json: {\n      success: true,\n      fileUpdated: 'Excel (Cell E8)',\n      filePath: excelFilePath,\n      cellE8Updated: timesheetDate,\n      timesheetDate: timesheetDate,\n      formattedDate: formattedDate,\n      folderName: $input.first().json.folderName,\n      outputPath: outputPath\n    }\n  };\n} catch (error) {\n  throw new Error(`Failed to update Excel file: ${error.message}`);\n}"
       },
       "id": "update_excel_cell",
       "name": "Update Excel Cell E8",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [1150, 300]
+      "position": [1300, 300]
     },
     {
       "parameters": {
@@ -72,7 +88,7 @@
       "name": "Build Response",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [1350, 300]
+      "position": [1500, 300]
     }
   ],
   "connections": {
@@ -91,30 +107,41 @@
       "main": [
         [
           {
-            "node": "create_folder_node",
+            "node": "fs_check_folder",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "create_folder_node": {
+    "fs_check_folder": {
       "main": [
         [
           {
-            "node": "copy_word_template",
+            "node": "fs_create_folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "fs_create_folder": {
+      "main": [
+        [
+          {
+            "node": "fs_copy_word",
             "type": "main",
             "index": 0
           },
           {
-            "node": "copy_excel_template",
+            "node": "fs_copy_excel",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "copy_word_template": {
+    "fs_copy_word": {
       "main": [
         [
           {
@@ -125,7 +152,7 @@
         ]
       ]
     },
-    "copy_excel_template": {
+    "fs_copy_excel": {
       "main": [
         [
           {
