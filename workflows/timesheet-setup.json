@@ -26,7 +26,8 @@
     },
     {
       "parameters": {
-        "functionCode": "const { execSync } = require('child_process');\nconst outputPath = $input.first().json.outputPath;\ntry {\n  execSync('mkdir -p \"' + outputPath + '\"');\n  return {\n    json: {\n      success: true,\n      folderCreated: true,\n      path: outputPath,\n      timesheetDate: $input.first().json.timesheetDate,\n      formattedDate: $input.first().json.formattedDate,\n      folderName: $input.first().json.folderName,\n      outputPath: outputPath,\n      templatePath: $input.first().json.templatePath,\n      basePath: $input.first().json.basePath\n    }\n  };\n} catch (error) {\n  throw new Error('Failed to create folder: ' + error.message);\n}"
+        "functionCode": "const { execSync } = require('child_process');\nconst outputPath = $input.first().json.outputPath;\ntry {\n  execSync('rm -rf \"' + outputPath + '\"');\n  return {\n    json: {
+      success: true,\n      folderDeleted: true,\n      path: outputPath,\n      timesheetDate: $input.first().json.timesheetDate,\n      formattedDate: $input.first().json.formattedDate,\n      folderName: $input.first().json.folderName,\n      outputPath: outputPath,\n      templatePath: $input.first().json.templatePath,\n      basePath: $input.first().json.basePath\n    }\n  };\n} catch (error) {\n  throw new Error('Failed to delete existing folder: ' + error.message);\n}"\n      },\n      "id": "delete_existing_folder",\n      "name": "Delete Existing Folder (if exists)",\n      "type": "n8n-nodes-base.function",\n      "typeVersion": 1,\n      "position": [650, 300]\n    },\n    {\n      "parameters": {\n        "functionCode": "const { execSync } = require('child_process');\nconst outputPath = $input.first().json.outputPath;\ntry {\n  execSync('mkdir -p \"' + outputPath + '\"');\n  return {\n    json: {\n      success: true,\n      folderCreated: true,\n      path: outputPath,\n      timesheetDate: $input.first().json.timesheetDate,\n      formattedDate: $input.first().json.formattedDate,\n      folderName: $input.first().json.folderName,\n      outputPath: outputPath,\n      templatePath: $input.first().json.templatePath,\n      basePath: $input.first().json.basePath\n    }\n  };\n} catch (error) {\n  throw new Error('Failed to create folder: ' + error.message);\n}
       },
       "id": "create_folder_node",
       "name": "Create Output Folder",
@@ -88,6 +89,17 @@
       ]
     },
     "format_date_node": {
+      "main": [
+        [
+          {
+            "node": "delete_existing_folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "delete_existing_folder": {
       "main": [
         [
           {
