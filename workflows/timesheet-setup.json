@@ -66,13 +66,23 @@
     },
     {
       "parameters": {
-        "functionCode": "// Compile final response\nconst inputs = $input.first().json;\n\nreturn {\n  json: {\n    status: 'success',\n    message: 'Timesheet setup completed successfully',\n    details: {\n      timesheetDate: inputs.timesheetDate || $input.all()[0].json.timesheetDate,\n      folderName: inputs.folderName || $input.all()[0].json.folderName,\n      outputPath: inputs.outputPath || $input.all()[0].json.outputPath,\n      filesCreated: [\n        `RossNanton-Invoice-${inputs.formattedDate || $input.all()[0].json.formattedDate}.docx`,\n        `RossNanton-Timesheet-${inputs.formattedDate || $input.all()[0].json.formattedDate}.xlsx (Cell E8 updated)`\n      ]\n    }\n  }\n};"
+        "functionCode": "// Compile final response\nconst updateResult = $input.first().json;\nconst allInputs = $input.all();\n\nlet timesheetDate = updateResult.cellE8Updated || updateResult.timesheetDate;\nlet folderName = updateResult.folderName;\nlet formattedDate = updateResult.formattedDate;\nlet outputPath = updateResult.outputPath;\n\n// Fallback to looking through all inputs for required values\nif (!timesheetDate || !folderName) {\n  for (let i = 0; i < allInputs.length; i++) {\n    if (allInputs[i].json.timesheetDate && !timesheetDate) {\n      timesheetDate = allInputs[i].json.timesheetDate;\n    }\n    if (allInputs[i].json.folderName && !folderName) {\n      folderName = allInputs[i].json.folderName;\n    }\n    if (allInputs[i].json.formattedDate && !formattedDate) {\n      formattedDate = allInputs[i].json.formattedDate;\n    }\n    if (allInputs[i].json.outputPath && !outputPath) {\n      outputPath = allInputs[i].json.outputPath;\n    }\n  }\n}\n\nreturn {\n  json: {\n    status: 'success',\n    message: 'Timesheet setup completed successfully',\n    details: {\n      timesheetDate: timesheetDate,\n      folderName: folderName,\n      outputPath: outputPath,\n      filesCreated: [\n        `RossNanton-Invoice-${formattedDate}.docx`,\n        `RossNanton-Timesheet-${formattedDate}.xlsx (Cell E8 updated: ${timesheetDate})`\n      ]\n    }\n  }\n};"
       },
-      "id": "response_node",
-      "name": "Response",
+      "id": "build_response",
+      "name": "Build Response",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [1500, 300]
+      "position": [1400, 400]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "respond_to_webhook",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1600, 400]
     }
   ],
   "connections": {
@@ -140,22 +150,27 @@
       "main": [
         [
           {
-            "node": "response_node",
+            "node": "build_response",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "response_node": {
+    "build_response": {
       "main": [
         [
           {
-            "node": "webhook_trigger",
+            "node": "respond_to_webhook",
             "type": "main",
             "index": 0
           }
         ]
+      ]
+    },
+    "respond_to_webhook": {
+      "main": [
+        []
       ]
     }
   }
