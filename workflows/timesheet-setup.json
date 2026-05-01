@@ -26,49 +26,33 @@
     },
     {
       "parameters": {
-        "operation": "exists",
-        "path": "{{ $json.outputPath }}"
+        "command": "mkdir -p {{ $json.outputPath }}"
       },
-      "id": "fs_check_folder",
-      "name": "Check if Folder Exists",
-      "type": "n8n-nodes-base.fileSystem",
+      "id": "bash_create_folder",
+      "name": "Create Output Folder",
+      "type": "n8n-nodes-base.bash",
       "typeVersion": 1,
       "position": [750, 300]
     },
     {
       "parameters": {
-        "operation": "mkdir",
-        "path": "{{ $json.outputPath }}"
+        "command": "cp {{ $json.templatePath }}/RossNanton-Invoice-yyyy.mm.dd.docx {{ $json.outputPath }}/RossNanton-Invoice-{{ $json.formattedDate }}.docx"
       },
-      "id": "fs_create_folder",
-      "name": "Create Output Folder",
-      "type": "n8n-nodes-base.fileSystem",
-      "typeVersion": 1,
-      "position": [950, 300]
-    },
-    {
-      "parameters": {
-        "operation": "copy",
-        "sourcePath": "{{ $json.templatePath }}/RossNanton-Invoice-yyyy.mm.dd.docx",
-        "destinationPath": "{{ $json.outputPath }}/RossNanton-Invoice-{{ $json.formattedDate }}.docx"
-      },
-      "id": "fs_copy_word",
+      "id": "bash_copy_word",
       "name": "Copy Word Template",
-      "type": "n8n-nodes-base.fileSystem",
+      "type": "n8n-nodes-base.bash",
       "typeVersion": 1,
-      "position": [1100, 150]
+      "position": [950, 150]
     },
     {
       "parameters": {
-        "operation": "copy",
-        "sourcePath": "{{ $json.templatePath }}/RossNanton-Timesheet-yyyy.mm.dd.xlsx",
-        "destinationPath": "{{ $json.outputPath }}/RossNanton-Timesheet-{{ $json.formattedDate }}.xlsx"
+        "command": "cp {{ $json.templatePath }}/RossNanton-Timesheet-yyyy.mm.dd.xlsx {{ $json.outputPath }}/RossNanton-Timesheet-{{ $json.formattedDate }}.xlsx"
       },
-      "id": "fs_copy_excel",
+      "id": "bash_copy_excel",
       "name": "Copy Excel Template",
-      "type": "n8n-nodes-base.fileSystem",
+      "type": "n8n-nodes-base.bash",
       "typeVersion": 1,
-      "position": [1100, 450]
+      "position": [950, 450]
     },
     {
       "parameters": {
@@ -78,7 +62,7 @@
       "name": "Update Excel Cell E8",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [1300, 300]
+      "position": [1150, 300]
     },
     {
       "parameters": {
@@ -88,7 +72,7 @@
       "name": "Build Response",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [1500, 300]
+      "position": [1350, 300]
     }
   ],
   "connections": {
@@ -107,41 +91,30 @@
       "main": [
         [
           {
-            "node": "fs_check_folder",
+            "node": "bash_create_folder",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "fs_check_folder": {
+    "bash_create_folder": {
       "main": [
         [
           {
-            "node": "fs_create_folder",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "fs_create_folder": {
-      "main": [
-        [
-          {
-            "node": "fs_copy_word",
+            "node": "bash_copy_word",
             "type": "main",
             "index": 0
           },
           {
-            "node": "fs_copy_excel",
+            "node": "bash_copy_excel",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "fs_copy_word": {
+    "bash_copy_word": {
       "main": [
         [
           {
@@ -152,7 +125,7 @@
         ]
       ]
     },
-    "fs_copy_excel": {
+    "bash_copy_excel": {
       "main": [
         [
           {
